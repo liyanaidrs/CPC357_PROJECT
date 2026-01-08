@@ -90,6 +90,27 @@ The **Predictive Hybrid Smart Lock** is designed to provide secure, contactless 
     ```
 4.  Upload to the **Maker Feather AIoT S3**.
 
+### Cloud SQL Proxy Setup
+1. Open PowerShell and navigate to project folder.
+2. Set the authentication key: $Env:GOOGLE_APPLICATION_CREDENTIALS="C:\Users\HP\Downloads\cloud-sql-proxy-key.json" (change to the folder address)
+3. Start the proxy: .\cloud-sql-proxy.exe "smiling-sweep-481702-g7:us-central1:assignment2"
+
+### For Linux (MQTT Listener Environment)
+1. Run SSH in GCP.
+2. Run the proxy with a specific port mapping (3307) : ./cloud_sql_proxy -instances=smiling-sweep-481702-g7:us-central1:assignment2=tcp:3307 \
+-credential_file=/home/inurin32/smiling-sweep-481702-g7-2b9b146d84fd.json
+
+### Backend & MQTT Service Setup
+1. Run another SSH in GCP.
+2. Ensure the script is executable: **chmod +x cloud_sql_proxy**.
+3. Activate your virtual environment: **source mqtt_env/bin/activate**.
+4. Install required Python packages: **pip install paho-mqtt mysql-connector-python**
+5. Start the listener: **python3 mqtt_to_cloudsql.py**
+
+### Flask Web Application 
+1. Open a new terminal.
+2. Ensure dependencies are installed: **pip install flask mysql-connector-python**.
+3. Run the application: **python app.py**
 ---
 
 ## 🚀 Usage Guide
