@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DoorLock Dashboard</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="bg-gray-50 min-h-screen flex">
+
+<!-- SIDEBAR -->
+<div class="w-64 bg-gradient-to-b from-indigo-600 to-indigo-800 text-white p-6">
+  <h2 class="text-2xl font-bold mb-10 flex items-center gap-2">
+    🛡️ DoorLock
+  </h2>
+
+  <ul class="space-y-3">
+    <li class="px-4 py-3 rounded-lg {{ 'bg-white text-indigo-600' if active_tab=='dashboard' else 'hover:bg-indigo-700' }}">
+      <a href="/dashboard?tab=dashboard">Dashboard</a>
+    </li>
+
+    <li class="px-4 py-3 rounded-lg {{ 'bg-white text-indigo-600' if active_tab=='rfid' else 'hover:bg-indigo-700' }}">
+      <a href="/dashboard?tab=rfid">RFID</a>
+    </li>
+
+    <li class="px-4 py-3 rounded-lg {{ 'bg-white text-indigo-600' if active_tab=='logs' else 'hover:bg-indigo-700' }}">
+      <a href="/dashboard?tab=logs">Logs</a>
+    </li>
+
+    <li class="px-4 py-3 rounded-lg {{ 'bg-white text-indigo-600' if active_tab=='settings' else 'hover:bg-indigo-700' }}">
+      <a href="/dashboard?tab=settings">Settings</a>
+    </li>
+  </ul>
+</div>
+
+<!-- MAIN -->
+<div class="flex-1 p-8">
+
+  <!-- TOP BAR -->
+  <div class="bg-white rounded-xl shadow-sm p-4 mb-8 flex justify-between">
+    <span>Welcome, <strong>{{ session.username }}</strong></span>
+    <a href="/logout" class="text-indigo-600 font-medium">Logout</a>
+  </div>
+
+<!-- ================= DASHBOARD ================= -->
+{% if active_tab == 'dashboard' %}
+
+<!-- STATUS CARDS -->
+<div class="grid grid-cols-3 gap-6 mb-8">
+  <div class="bg-white p-6 rounded-xl shadow">
+    <p class="text-gray-500 text-sm">Door Status</p>
+    <p id="doorStatus"
+       class="text-2xl font-bold {{ 'text-red-500' if door_status=='LOCKED' else 'text-green-500' }}">
+      {{ door_status }}
+    </p>
+  </div>
+
+  <div class="bg-white p-6 rounded-xl shadow">
+    <p class="text-gray-500 text-sm">Registered RFID</p>
+    <p class="text-3xl font-bold text-indigo-600">{{ cards|length }}/10</p>
+  </div>
+
+  <div class="bg-white p-6 rounded-xl shadow">
+    <p class="text-gray-500 text-sm">Total Logs</p>
+    <p id="totalLogs" class="text-3xl font-bold text-indigo-600">{{ logs|length }}</p>
+  </div>
+</div>
+
+<!-- CHART + ALERTS -->
+<div class="grid grid-cols-2 gap-6 mb-8">
+  <!-- ACCESS CHART -->
+  <div class="bg-white p-6 rounded-xl shadow">
+    <h3 class="font-bold mb-4">Access Granted vs Denied</h3>
+    <canvas id="accessChart"></canvas>
+  </div>
+
+  <!-- ALERTS -->
+  <div class="bg-white p-6 rounded-xl shadow">
+    <h3 class="font-bold mb-4">Alerts</h3>
+    <ul id="alertList" class="space-y-3">
+      {% if alert_low_battery > 0 %}
+      <li class="bg-yellow-100 text-yellow-800 p-3 rounded-lg">
+        🔋 Low Battery Alerts: {{ alert_low_battery }}
+      </li>
+      {% endif %}
+      {% if alert_after_hours > 0 %}
+      <li class="bg-blue-100 text-blue-800 p-3 rounded-lg">
+        ⏰ After Hours Access: {{ alert_after_hours }}
+      </li>
+      {% endif %}
+      {% if alert_low_battery == 0 and alert_after_hours == 0 %}
+      <li class="bg-green-100 text-green-700 p-3 rounded-lg">
+        ✅ No alerts at the moment
+      </li>
+      {% endif %}
+    </ul>
+  </div>
+</div>
+
+<!-- RECENT ACTIVITY (NEW CARD BELOW GRID) -->
+<div class="bg-white p-6 rounded-xl shadow max-w-4xl">
+  <h3 class="font-bold mb-4">Recent Activity</h3>
+
+  <table class="w-full text-sm">
+    <thead class="border-b text-gray-500">
+      <tr>
+        <th class="py-2 text-left">RFID UID</th>
+        <th class="py-2 text-left">Event</th>
+        <th class="py-2 text-left">Timestamp</th>
+      </tr>
+    </thead>
+
+    <tbody id="accessLogTable">
+      {% for log in logs[:5] %}
+      <tr class="border-b">
+        <td class="py-3 font-mono">{{ log['rfid_uid'] }}</td>
+        <td>
+          {% if log['event']=='ACCESS_GRANTED' %}
+          <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">Access Granted</span>
+          {% else %}
+          <span class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm">Access Denied</span>
+          {% endif %}
+        </td>
+        <td class="text-gray-600">{{ log['timestamp'] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</div>
+
+{% endif %}
+  <!-- ================= RFID ================= -->
+  {% if active_tab == 'rfid' %}
+  <div class="bg-white p-8 rounded-xl shadow max-w-4xl">
+    <h3 class="text-2xl font-bold mb-6">RFID Card Management</h3>
+
+    <form method="POST" action="/add_rfid" class="flex gap-4 mb-6">
+      <input name="rfid" required placeholder="Enter RFID UID"
+             class="flex-1 border px-4 py-3 rounded-xl">
+      <button class="bg-indigo-600 text-white px-6 py-3 rounded-xl">➕ Add Card</button>
+    </form>
+
+    <div class="space-y-4">
+      {% for card in cards %}
+      <div class="flex justify-between items-center p-5 border rounded-xl">
+        <span class="font-mono font-semibold">{{ card['rfid_uid'] }}</span>
+        <div class="flex gap-3">
+          <span class="bg-green-100 text-green-700 px-4 py-1 rounded-full">Test Access</span>
+          <button class="bg-red-100 text-red-600 p-2 rounded">🗑️</button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ================= LOGS ================= -->
+  {% if active_tab == 'logs' %}
+  <div class="bg-white p-8 rounded-xl shadow max-w-4xl">
+    <h3 class="text-2xl font-bold mb-6">Access Activity Log</h3>
+
+    <table class="w-full">
+      <thead class="border-b text-gray-500">
+        <tr>
+          <th class="py-2 text-left">RFID</th>
+          <th class="py-2 text-left">Event</th>
+          <th class="py-2 text-left">Time</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for log in logs %}
+        <tr class="border-b">
+          <td class="py-3 font-mono">{{ log['rfid_uid'] }}</td>
+          <td>
+            <span class="px-3 py-1 rounded-full text-sm
+              {{ 'bg-green-100 text-green-700' if log['event']=='ACCESS_GRANTED' else 'bg-red-100 text-red-600' }}">
+              {{ log['event'].replace('_',' ').title() }}
+            </span>
+          </td>
+          <td class="text-gray-600">{{ log['timestamp'] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <!-- ================= SETTINGS ================= -->
+  {% if active_tab == 'settings' %}
+  <div class="bg-white p-8 rounded-xl shadow max-w-4xl space-y-6">
+    <h3 class="text-2xl font-bold">Settings</h3>
+
+    <div class="border p-6 rounded-xl">
+      <h4 class="font-semibold mb-2">Auto-Lock Timer</h4>
+      <select class="border px-4 py-2 rounded-lg">
+        <option>3 seconds</option>
+        <option>5 seconds</option>
+        <option>10 seconds</option>
+      </select>
+    </div>
+
+    <div class="border p-6 rounded-xl">
+      <h4 class="font-semibold">Maximum RFID Cards</h4>
+      <p class="text-gray-500">Currently: 10 cards</p>
+    </div>
+
+    <div class="border p-6 rounded-xl">
+      <label class="flex items-center gap-3">
+        <input type="checkbox" checked class="w-5 h-5">
+        Enable access notifications
+      </label>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- CHART SCRIPT -->
+<script>
+const ctx = document.getElementById('accessChart');
+if(ctx){
+  new Chart(ctx,{
+    type:'doughnut',
+    data:{
+      labels:['Granted','Denied'],
+      datasets:[{
+        data:[{{ access_granted }},{{ access_denied }}],
+        backgroundColor:['#34D399','#F87171']
+      }]
+    }
+  });
+}
+</script>
+<script>
+let autoLockTimer = null;
+let currentDoorState = null; // 'LOCKED' or 'UNLOCKED'
+let lastProcessedEvent = null;
+
+function updateDoorStatus(event) {
+  const el = document.getElementById("doorStatus");
+  if (!el) return;
+
+  // If event is the same as last processed, do nothing
+  if (event === lastProcessedEvent) return;
+  lastProcessedEvent = event;
+
+  // Clear previous timer
+  if (autoLockTimer) {
+    clearTimeout(autoLockTimer);
+    autoLockTimer = null;
+  }
+
+  if (event === "ACCESS_GRANTED") {
+    // Unlock door
+    el.innerText = "UNLOCKED";
+    el.classList.remove("text-red-500");
+    el.classList.add("text-green-500");
+    currentDoorState = "UNLOCKED";
+
+    // Start auto-lock timer (10 seconds)
+    autoLockTimer = setTimeout(() => {
+      el.innerText = "LOCKED";
+      el.classList.remove("text-green-500");
+      el.classList.add("text-red-500");
+      currentDoorState = "LOCKED";
+      autoLockTimer = null;
+    }, 10000);
+
+  } else {
+    // ACCESS_DENIED or after auto-lock
+    el.innerText = "LOCKED";
+    el.classList.remove("text-green-500");
+    el.classList.add("text-red-500");
+    currentDoorState = "LOCKED";
+  }
+}
+
+function refreshDashboard() {
+  const table = document.getElementById("accessLogTable");
+  const totalEl = document.getElementById("totalLogs");
+  if (!table || !totalEl) return;
+
+  // ---------------- Access Logs ----------------
+  fetch("/api/live/access_logs")
+    .then(r => r.json())
+    .then(logs => {
+      totalEl.innerText = logs.length;
+      table.innerHTML = "";
+
+      logs.slice(0,5).forEach(l => {
+        const isGranted = l.event === "ACCESS_GRANTED";
+        const ts = l.timestamp; // Already Malaysia time from server
+        table.innerHTML += `
+          <tr class="border-b">
+            <td class="py-3 font-mono">${l.rfid_uid}</td>
+            <td>
+              <span class="px-3 py-1 rounded-full text-sm ${
+                isGranted ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
+              }">${isGranted ? "Access Granted":"Access Denied"}</span>
+            </td>
+            <td class="text-gray-600">${ts}</td>
+          </tr>`;
+      });
+
+      if(logs.length>5){
+        table.innerHTML += `<tr><td colspan="3" class="text-right py-2">
+          <a href="/dashboard?tab=logs" class="text-indigo-600 font-medium hover:underline">More →</a></td></tr>`;
+      }
+
+      if(logs.length>0) updateDoorStatus(logs[0].event);
+    });
+
+  // ---------------- Alerts ----------------
+  const list = document.getElementById("alertList");
+  if(!list) return;
+  fetch("/api/live/alerts")
+    .then(r=>r.json())
+    .then(alerts=>{
+      list.innerHTML="";
+      if(alerts.length===0){
+        list.innerHTML=`<li class="bg-green-100 text-green-700 p-3 rounded-lg">✅ No alerts at the moment</li>`;
+        return;
+      }
+
+      alerts.forEach(a=>{
+        const ts = a.timestamp; // Already Malaysia time from server
+        let bgColor="", textColor="";
+        if(a.type==="LOW_BATTERY"){bgColor="bg-yellow-100"; textColor="text-yellow-800";}
+        else if(a.type==="AFTER_HOURS_ACCESS"){bgColor="bg-blue-100"; textColor="text-blue-800";}
+        else{bgColor="bg-gray-100"; textColor="text-gray-800";}
+
+        list.innerHTML += `<li class="${bgColor} ${textColor} p-3 rounded-lg">
+          ⚠ ${a.type.replace("_"," ")}<br>
+          <small>${a.rfid_uid} • ${ts}</small></li>`;
+      });
+    });
+}
+
+// Refresh every 3 seconds
+setInterval(refreshDashboard,3000);
+</script>
+
+</body>
+</html>
