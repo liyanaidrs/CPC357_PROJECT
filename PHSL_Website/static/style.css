@@ -1,0 +1,222 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Segoe UI", sans-serif;
+    background: #0b1120;
+    color: #e5e7eb;
+}
+
+/* LAYOUT */
+.layout {
+    display: flex;
+    height: 100vh;
+}
+
+/* SIDEBAR */
+.sidebar {
+    width: 220px;
+    background: #020617;
+    padding: 20px;
+}
+
+.sidebar h2 {
+    margin-bottom: 30px;
+    color: #38bdf8;
+}
+
+.sidebar ul {
+    list-style: none;
+}
+
+.sidebar li {
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.sidebar li:hover,
+.sidebar .active {
+    background: #1e293b;
+}
+
+/* MAIN */
+.main {
+    flex: 1;
+    padding: 20px;
+}
+
+/* TOP BAR */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+/* STATUS CARDS */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.status-card {
+    background: #020617;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.status-card h4 {
+    color: #94a3b8;
+}
+
+.status {
+    margin-top: 10px;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.locked {
+    color: #f87171;
+}
+
+.number {
+    font-size: 28px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+/* PANELS */
+.panel {
+    background: #020617;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+}
+
+.panel h3 {
+    margin-bottom: 15px;
+}
+
+/* RFID */
+.rfid-list {
+    list-style: none;
+    margin-bottom: 15px;
+}
+
+.rfid-list li {
+    background: #1e293b;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.rfid-form {
+    display: flex;
+    gap: 10px;
+}
+
+.rfid-form input {
+    flex: 1;
+    padding: 10px;
+    background: #1e293b;
+    border: none;
+    color: white;
+    border-radius: 8px;
+}
+
+.rfid-form button {
+    background: #38bdf8;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* TABLE */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    text-align: left;
+    padding-bottom: 10px;
+    color: #94a3b8;
+}
+
+td {
+    padding: 10px 0;
+    border-bottom: 1px solid #1e293b;
+}
+.unlocked {
+    color: #4ade80;
+}
+/* =====================
+   MOBILE RESPONSIVE
+===================== */
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+/* Cards */
+.card {
+    padding: 15px;
+    border-radius: 10px;
+    background: #fff;
+    margin-bottom: 15px;
+}
+
+/* Door status */
+.status {
+    padding: 8px 14px;
+    border-radius: 20px;
+    display: inline-block;
+    font-weight: bold;
+}
+
+.locked {
+    background: #ffdddd;
+    color: #b30000;
+}
+
+.unlocked {
+    background: #ddffdd;
+    color: #006600;
+}
+
+/* Table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table th, table td {
+    padding: 8px;
+    font-size: 14px;
+}
+
+/* Mobile view */
+@media (max-width: 768px) {
+    table th, table td {
+        font-size: 12px;
+    }
+
+    .sidebar {
+        width: 100%;
+        position: relative;
+    }
+
+    .content {
+        padding: 10px;
+    }
+}
+
+
