@@ -132,5 +132,9 @@ It features a hybrid authentication model allowing users to unlock via **RFID Ca
 | **🟢 Green + Click** | **Access Granted** | Door unlocks for 3 seconds. |
 | **🔴 Red + Long Beep** | **Access Denied** | Unauthorized credential or wrong PIN. |
 | **🟠 Orange Flash** | **After-Hours Warning** | Valid entry detected outside operating hours (6 PM - 8 AM). Logged as warning. |
+
+--
+## YouTube Video Link
+**LINK PRESENTATION** : https://youtu.be/HZgPlNM76uY 
 | **🟡 Slow Flash** | **Low Battery** | Battery voltage < 10.5V. |
 
